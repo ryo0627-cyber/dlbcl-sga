@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>高齢DLBCL 治療前評価 sGA</title>
+<style>
+:root{
+  --blue:#0072B2; --amber:#E69F00; --teal:#009E73; --verm:#D55E00; --pink:#CC79A7;
+  --ink:#1a1a1a; --muted:#5a5a57; --line:#e2e0d8; --bg:#ffffff; --soft:#f5f4ef;
+  --amber-ink:#5a3d00;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+  line-height:1.6;font-size:16px}
+.wrap{max-width:680px;margin:0 auto;padding:0 16px env(safe-area-inset-bottom)}
+header{padding:18px 0 12px}
+h1{font-size:20px;font-weight:700;margin:0 0 2px;letter-spacing:.01em}
+.affil{font-size:13px;color:var(--muted)}
+.nostore{display:inline-flex;align-items:center;gap:6px;margin-top:8px;
+  font-size:12px;color:var(--teal);border:1px solid var(--teal);border-radius:999px;padding:2px 10px}
+.nostore::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal)}
+.hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.hrow .nostore{margin-top:0}
+.desc-toggle{appearance:none;font:inherit;font-size:12px;cursor:pointer;
+  border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:3px 12px;min-height:32px}
+.desc-toggle[aria-pressed="true"]{border-color:var(--blue);color:var(--blue)}
+.desc-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+body.hide-desc .cfs-opt .desc{display:none}
+body.hide-desc .rlabel .sysdesc{display:none}
+
+/* verdict */
+.verdict{position:sticky;top:0;z-index:5;background:var(--bg);
+  border:1px solid var(--line);border-radius:14px;padding:14px;margin:4px 0 18px;
+  box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.vtop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.badge{font-size:22px;font-weight:700;letter-spacing:.04em;border-radius:10px;
+  padding:6px 16px;color:#fff;background:#999;text-transform:uppercase}
+.badge[data-c="fit"]{background:var(--blue);color:#fff}
+.badge[data-c="unfit"]{background:var(--amber);color:var(--amber-ink)}
+.badge[data-c="frail"]{background:var(--verm);color:#fff}
+.badge[data-c="none"]{background:var(--soft);color:var(--muted);font-size:15px;font-weight:600;text-transform:none}
+.gloss{font-size:14px;color:var(--muted);font-weight:600}
+.derived{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
+.derived b{color:var(--ink);font-weight:700}
+.reasons{margin:10px 0 0;padding:0;list-style:none;font-size:13px}
+.reasons li{padding:3px 0 3px 16px;position:relative;color:var(--ink)}
+.reasons li::before{content:"";position:absolute;left:2px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.reasons li[data-c="frail"]::before{background:var(--verm)}
+.reasons li[data-c="unfit"]::before{background:var(--amber)}
+.callout{margin-top:10px;font-size:13px;border-radius:9px;padding:8px 11px;border:1px solid var(--line);background:var(--soft)}
+.callout.flag{border-color:var(--amber);background:#fdf4e0;color:var(--amber-ink)}
+.callout strong{font-weight:700}
+.note{margin-top:10px;font-size:12px;color:var(--muted)}
+
+/* sections */
+section{margin:0 0 18px}
+.shead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px}
+.shead h2{font-size:15px;font-weight:700;margin:0}
+.shint{font-size:12px;color:var(--muted)}
+.grade-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 10px;font-size:12px;color:var(--muted)}
+.grade-legend span{display:inline-flex;align-items:center;gap:5px}
+.grade-legend b{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:var(--soft);color:var(--ink);font-size:11px;font-weight:700}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:7px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:none}
+.rlabel{font-size:15px}
+.rlabel small{display:block;font-size:11px;color:var(--muted)}
+
+/* segmented controls */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;flex:none}
+.seg button{appearance:none;border:none;background:#fff;color:var(--ink);
+  font:inherit;font-size:14px;min-width:42px;min-height:40px;padding:0 12px;cursor:pointer;
+  border-left:1px solid var(--line)}
+.seg button:first-child{border-left:none}
+.seg button[aria-pressed="true"]{background:var(--blue);color:#fff;font-weight:700}
+.seg.bin button{min-width:62px}
+.seg.grade button{min-width:40px;padding:0 8px}
+.row.exception{background:#fdf7ec;border-radius:8px;margin:2px -6px;padding-left:6px;padding-right:6px}
+.row.exception .rlabel::after{content:"  ●";color:var(--amber);font-size:11px}
+
+/* age + cfs */
+.field{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.field:first-child{border-top:none}
+input[type="number"]{font:inherit;font-size:16px;width:104px;padding:9px 10px;
+  border:1px solid var(--line);border-radius:9px;text-align:right;background:#fff}
+input[type="number"]:focus,.seg button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.cfs-list{display:flex;flex-direction:column;gap:6px}
+.cfs-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;color:var(--ink)}
+.cfs-opt .num{flex:none;width:30px;height:30px;border-radius:8px;background:var(--soft);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+.cfs-opt .ct{display:flex;flex-direction:column;line-height:1.35}
+.cfs-opt .lab{font-size:15px;font-weight:600}
+.cfs-opt .desc{font-size:12px;color:var(--muted)}
+.cfs-opt[aria-pressed="true"]{border-color:var(--blue);background:#eef6fb;box-shadow:inset 0 0 0 1px var(--blue)}
+.cfs-opt[aria-pressed="true"] .num{background:var(--blue);color:#fff}
+.cfs-opt:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+
+.actions{display:flex;gap:10px;margin:6px 0 28px}
+.btn{font:inherit;font-size:14px;border-radius:9px;padding:11px 16px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink)}
+.btn.reset{color:var(--verm);border-color:var(--verm)}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding:14px 0 30px;line-height:1.7}
+footer .star{color:var(--amber-ink)}
+@media (max-width:420px){
+  .rlabel{font-size:14px}
+  .seg.bin button{min-width:54px}
+}
+/* view tabs */
+.tabs{display:flex;gap:6px;margin:0 0 8px}
+.tabs button{flex:1;appearance:none;font:inherit;font-size:14px;cursor:pointer;
+  border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:9px;padding:9px 0;min-height:44px}
+.tabs button[aria-pressed="true"]{border-color:var(--blue);color:var(--blue);font-weight:700;background:#eef6fb}
+/* flow view */
+#view-flow{padding-bottom:24px}
+.flow-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 14px}
+#flow-current{font-size:14px;font-weight:700;border-radius:8px;padding:4px 12px}
+#flow-current[data-c="fit"]{background:#eef6fb;color:var(--blue)}
+#flow-current[data-c="unfit"]{background:#fdf4e0;color:var(--amber-ink)}
+#flow-current[data-c="frail"]{background:#fbeae0;color:var(--verm)}
+.funnel{display:flex;flex-direction:column;gap:0;margin:0 0 16px}
+.fbox{border:1px solid var(--line);background:var(--soft);border-radius:9px;padding:9px 12px;font-size:13px;text-align:center}
+.farrow,.parrow{text-align:center;color:var(--muted);font-size:14px;padding:3px 0}
+.paths{display:flex;flex-direction:column;gap:14px}
+.path{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.phead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:11px 14px;font-weight:700;font-size:16px;cursor:pointer}
+.phead small{font-weight:600;font-size:12px;opacity:.95}
+.phead[data-c="fit"]{background:var(--blue);color:#fff}
+.phead[data-c="unfit"]{background:var(--amber);color:var(--amber-ink)}
+.phead[data-c="frail"]{background:var(--verm);color:#fff}
+.phead .chev{margin-left:auto;font-size:12px}
+.path.collapsed .pbody{display:none}
+.path.match{box-shadow:0 0 0 3px rgba(0,114,178,.30)}
+.pbody{padding:12px 14px;display:flex;flex-direction:column;gap:0}
+.step{border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:14px;background:#fff}
+.step.strong{font-weight:700}
+.step.muted{color:var(--muted);background:var(--soft)}
+.branch{border:1px dashed var(--line);border-radius:10px;padding:10px;margin:4px 0}
+.bq{font-size:13px;font-weight:700;text-align:center;margin-bottom:8px}
+.bsplit{display:flex;gap:10px;flex-wrap:wrap}
+.barm{flex:1 1 190px;display:flex;flex-direction:column;gap:6px}
+.blabel{align-self:flex-start;font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:999px;padding:1px 10px;background:var(--soft)}
+.note-side{margin-top:10px;font-size:12px;color:var(--muted);border-left:3px solid var(--pink);padding:6px 10px;background:#faf3f7;border-radius:0 8px 8px 0}
+.flow-foot{margin-top:16px;font-size:12px;color:#fff;background:#0b3a5c;border-radius:9px;padding:10px 14px;line-height:1.6}
+.flow-link-btn{margin-top:10px;appearance:none;font:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;
+  border:1px solid var(--blue);background:#eef6fb;color:var(--blue);border-radius:9px;padding:10px;min-height:44px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>高齢DLBCL 治療前評価 (sGA)</h1>
+    <div class="affil">旭川赤十字病院 血液腫瘍内科</div>
+    <div class="hrow">
+      <span class="nostore">計算のみ・保存なし</span>
+      <button class="desc-toggle" id="descToggle" type="button" aria-pressed="true">説明文：表示</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button id="tabAssess" type="button" aria-pressed="true">評価</button>
+    <button id="tabFlow" type="button" aria-pressed="false">治療フロー</button>
+  </nav>
+
+  <div id="view-assess">
+
+  <div class="verdict" id="verdict" aria-live="polite">
+    <div class="vtop">
+      <span class="badge" id="badge" data-c="none">年齢を入力</span>
+      <span class="gloss" id="gloss"></span>
+    </div>
+    <div class="derived" id="derived"></div>
+    <ul class="reasons" id="reasons"></ul>
+    <div id="flags"></div>
+    <div class="note">スコアは治療可否の自動判定ではなく、治癒可能性を保ちながら安全に治療するための補助線。最終分類はカンファで決定する。</div>
+    <div id="flowlink"></div>
+  </div>
+
+  <section>
+    <div class="shead"><h2>基本</h2></div>
+    <div class="field">
+      <span class="rlabel">年齢</span>
+      <input type="number" id="age" inputmode="numeric" min="64" max="110" placeholder="例 78">
+    </div>
+    <div class="field">
+      <span class="rlabel">病勢由来frailty疑い<small>あり＝治療で回復しうる脆弱性</small></span>
+      <div class="seg bin" id="drf" role="group" aria-label="病勢由来frailty">
+        <button type="button" data-v="0" aria-pressed="true">なし</button>
+        <button type="button" data-v="1" aria-pressed="false">あり</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>CFS（臨床虚弱尺度）</h2><span class="shint">発症前baselineで評価・任意</span></div>
+    <div class="cfs-list" id="cfs"></div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>ADL (Katz)</h2><span class="shint">健康がデフォルト。介助のみ変更</span></div>
+    <div id="adl"></div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>IADL (Lawton)</h2><span class="shint">健康がデフォルト。介助のみ変更</span></div>
+    <div id="iadl"></div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>CIRS-G (14系統)</h2><span class="shint">0=問題なし。異常な系統のみ変更</span></div>
+    <div class="grade-legend">
+      <span><b>0</b> 問題なし</span><span><b>1</b> 軽度</span><span><b>2</b> 中等度（要治療・管理可）</span><span><b>3</b> 重度（生活/治療に影響）</span><span><b>4</b> 極めて重度（予後に影響）</span>
+    </div>
+    <div id="cirs"></div>
+  </section>
+
+  <div class="actions">
+    <button class="btn reset" id="resetBtn" type="button">リセット</button>
+  </div>
+
+  </div><!--/view-assess-->
+
+  <div id="view-flow" hidden>
+    <div class="flow-top">
+      <button class="btn" id="toAssess" type="button">← 評価に戻る</button>
+      <span id="flow-current"></span>
+    </div>
+
+    <div class="funnel">
+      <div class="fbox">新規DLBCL</div>
+      <div class="farrow">↓</div>
+      <div class="fbox">対象：75歳以上、または脆弱性あり</div>
+      <div class="farrow">↓</div>
+      <div class="fbox">治療前評価：sGA / CFS / G8 / ADL・IADL / CIRS-G / Mini-Cog / 栄養 / 社会背景</div>
+    </div>
+
+    <div class="paths">
+      <section class="path" id="path-fit">
+        <div class="phead" data-c="fit" data-toggle="fit">FIT<small>生活機能良好・重篤併存症なし</small><span class="chev">▾</span></div>
+        <div class="pbody">
+          <div class="step">治癒目的治療</div>
+          <div class="parrow">↓</div>
+          <div class="step strong">R-CHOP ／ pola-R-CHP ／ R-miniCHOP・減量R-CHOP</div>
+          <div class="parrow">↓</div>
+          <div class="step muted">年齢のみで過小治療にしない</div>
+        </div>
+      </section>
+
+      <section class="path" id="path-unfit">
+        <div class="phead" data-c="unfit" data-toggle="unfit">UNFIT<small>一部脆弱性あり・介入で治療可能性あり</small><span class="chev">▾</span></div>
+        <div class="pbody">
+          <div class="branch">
+            <div class="bq">病勢由来frailty？</div>
+            <div class="bsplit">
+              <div class="barm">
+                <span class="blabel">あり</span>
+                <div class="step">prephase → 再評価</div>
+                <div class="parrow">↓</div>
+                <div class="step">改善あり：R-miniCHOP ／ 減量R-CHOP</div>
+              </div>
+              <div class="barm">
+                <span class="blabel">なし</span>
+                <div class="step">R-miniCHOP ／ 減量R-CHOP</div>
+              </div>
+            </div>
+          </div>
+          <div class="parrow">↓</div>
+          <div class="step strong">初回入院導入 ／ G-CSF一次予防 ／ リハ・栄養・薬剤調整</div>
+          <div class="note-side">Anthracycline不適 → R-CEOP ／ R-COEP</div>
+        </div>
+      </section>
+
+      <section class="path" id="path-frail">
+        <div class="phead" data-c="frail" data-toggle="frail">FRAIL<small>ADL依存・高度併存症・認知/栄養/介護力の問題</small><span class="chev">▾</span></div>
+        <div class="pbody">
+          <div class="branch">
+            <div class="bq">病勢由来で可逆的？</div>
+            <div class="bsplit">
+              <div class="barm">
+                <span class="blabel">あり</span>
+                <div class="step">prephase → 再評価</div>
+                <div class="parrow">↓</div>
+                <div class="step">改善あり：UNFITへ</div>
+              </div>
+              <div class="barm">
+                <span class="blabel">なし（true frail）</span>
+                <div class="step">症状緩和・短期病勢制御</div>
+                <div class="parrow">↓</div>
+                <div class="step strong">R-VP ／ R単独+PSL ／ R-CVP ／ 局所RT ／ BSC・ACP</div>
+              </div>
+            </div>
+          </div>
+          <div class="note-side">R-COEP ／ R-CEOP は true frail よりも cardiac-unfit に位置づける</div>
+        </div>
+      </section>
+    </div>
+
+    <div class="flow-foot">※ スコアは治療可否の自動判定ではなく、治癒可能性を保ちながら安全に治療するための補助線として用いる</div>
+  </div>
+
+  <footer>
+    <div>sGA分類は Merli F et al. JCO 2021;39(11):1214-1222（FIL Elderly Project）に準拠。CIRS-G grade2: &lt;5→fit可 / 5–8→unfit / &gt;8→frail、grade3-4が1つでも→frail。年齢は80歳の二分のみ（≥80はfit不可・最良でunfit、年齢のみではfrailにしない）。</div>
+    <div>CFSは分類を変えず乖離検出のみ。病勢由来flagは分類を変えずカンファでの上書き根拠として提示。スコアは治療可否の自動判定ではなく補助線。</div>
+    <div>CFSのラベルは日本老年医学会 臨床虚弱尺度（Clinical Frailty Scale 日本語版v2）に準拠。各レベルの説明文は機能面の要約。</div>
+    <div>本ツールはデータを保存・送信しません。患者識別情報は入力しないでください。</div>
+  </footer>
+</div>
+
+<script>
+/* ===== sGA core（Merli 2021 JCO / Soverini review / FIL試験基準で確定） ===== */
+var SGA_CONFIG = {
+  AGE_ELDER:80,         /* ≥80 は fit 不可（最良で unfit）。年齢のみで frail にしない */
+  ADL_FIT:6, ADL_FRAIL_MAX:4,
+  IADL_FIT:8, IADL_FRAIL_MAX:5,
+  CIRS_G2_FIT_MAX:4,    /* grade2 <5 → fit可 */
+  CIRS_G2_UNFIT_MAX:8   /* grade2 5–8 → unfit / >8 → frail。grade3-4 が1つでも → frail */
+};
+var ADL = [['adl_bath','入浴'],['adl_dress','更衣'],['adl_toilet','トイレ動作'],['adl_transfer','移乗'],['adl_continence','排泄コントロール'],['adl_feeding','食事']];
+var IADL = [['iadl_phone','電話・連絡'],['iadl_shopping','買い物'],['iadl_food','食事準備'],['iadl_housekeep','家事'],['iadl_laundry','洗濯'],['iadl_transport','移動・交通'],['iadl_meds','服薬管理'],['iadl_finance','金銭管理']];
+var CIRS = [['cirs_heart','心臓','虚血性心疾患・心不全・弁膜症・不整脈'],['cirs_vascular','血管','高血圧・末梢動脈疾患・大血管病変'],['cirs_hema','血液・造血','原疾患以外の血球減少・骨髄予備能'],['cirs_resp','呼吸器','COPD・間質性肺疾患・在宅酸素'],['cirs_eent','眼・耳・鼻・咽喉','視力・聴力・嚥下（頭頸部）'],['cirs_ugi','上部消化管','食道・胃・十二指腸'],['cirs_lgi','下部消化管','腸管・下痢・憩室・通過障害'],['cirs_hepato','肝・胆・膵','肝機能・胆道・膵'],['cirs_renal','腎','CKDステージ・eGFR'],['cirs_gu','泌尿生殖器','排尿障害・前立腺・骨盤内'],['cirs_msk','筋骨格・皮膚','骨・関節・皮膚（ADL・転倒）'],['cirs_neuro','神経','脳血管障害・末梢神経障害・パーキンソン'],['cirs_endo','内分泌・代謝・乳腺','糖尿病・甲状腺・電解質'],['cirs_psych','精神・行動','うつ・不安・行動障害・せん妄']];
+var ADL_KEYS = ADL.map(function(x){return x[0];});
+var IADL_KEYS = IADL.map(function(x){return x[0];});
+var CIRS_KEYS = CIRS.map(function(x){return x[0];});
+
+function _sum01(o,keys){var t=0;for(var i=0;i<keys.length;i++)t+=Number(o[keys[i]])||0;return t;}
+function _cirsCounts(c){var c2=0,c3=0,c4=0,total=0;for(var i=0;i<CIRS_KEYS.length;i++){var v=Number(c[CIRS_KEYS[i]])||0;total+=v;if(v===2)c2++;if(v===3)c3++;if(v===4)c4++;}return{c2:c2,c3:c3,c4:c4,total:total};}
+
+function classifySGA(input){
+  var age=Number(input.age);
+  var adl=_sum01(input,ADL_KEYS), iadl=_sum01(input,IADL_KEYS), cirs=_cirsCounts(input.cirs||{});
+  var g34=cirs.c3+cirs.c4, g2=cirs.c2;
+  var cfs=(input.cfs===undefined||input.cfs===null||input.cfs==='')?null:Number(input.cfs);
+  var derived={adlTotal:adl,iadlTotal:iadl,cirsG2:cirs.c2,cirsG3:cirs.c3,cirsG4:cirs.c4,cirsG34:g34,cirsTotal:cirs.total};
+  if(!isFinite(age))return{ok:false,derived:derived};
+
+  var C=SGA_CONFIG, reasons=[], sga;
+  if(age < C.AGE_ELDER){
+    if(adl<=C.ADL_FRAIL_MAX || iadl<=C.IADL_FRAIL_MAX || g34>=1 || g2>C.CIRS_G2_UNFIT_MAX){
+      sga='frail';
+      if(adl<=C.ADL_FRAIL_MAX)reasons.push({c:'frail',t:'ADL合計≤'+C.ADL_FRAIL_MAX+' ('+adl+')'});
+      if(iadl<=C.IADL_FRAIL_MAX)reasons.push({c:'frail',t:'IADL合計≤'+C.IADL_FRAIL_MAX+' ('+iadl+')'});
+      if(g34>=1)reasons.push({c:'frail',t:'CIRS-G grade3-4≥1 ('+g34+')'});
+      if(g2>C.CIRS_G2_UNFIT_MAX)reasons.push({c:'frail',t:'CIRS-G grade2>'+C.CIRS_G2_UNFIT_MAX+' ('+g2+')'});
+    } else if(adl===5 || iadl===6 || iadl===7 || (g2>=C.CIRS_G2_FIT_MAX+1 && g2<=C.CIRS_G2_UNFIT_MAX)){
+      sga='unfit';
+      if(adl===5)reasons.push({c:'unfit',t:'ADL合計=5'});
+      if(iadl===6||iadl===7)reasons.push({c:'unfit',t:'IADL合計6–7 ('+iadl+')'});
+      if(g2>=C.CIRS_G2_FIT_MAX+1 && g2<=C.CIRS_G2_UNFIT_MAX)reasons.push({c:'unfit',t:'CIRS-G grade2 '+(C.CIRS_G2_FIT_MAX+1)+'–'+C.CIRS_G2_UNFIT_MAX+' ('+g2+')'});
+    } else {
+      sga='fit';
+      reasons.push({c:'fit',t:'年齢<'+C.AGE_ELDER+' / ADL=6 / IADL=8 / grade3-4なし / grade2<'+(C.CIRS_G2_FIT_MAX+1)});
+    }
+  } else {
+    if(adl===C.ADL_FIT && iadl===C.IADL_FIT && g34===0 && g2<=C.CIRS_G2_FIT_MAX){
+      sga='unfit';
+      reasons.push({c:'unfit',t:'年齢≥'+C.AGE_ELDER+'（ADL/IADL自立・重篤併存なし）'});
+    } else {
+      sga='frail';
+      var pre='年齢≥'+C.AGE_ELDER+' かつ ';
+      if(adl<C.ADL_FIT)reasons.push({c:'frail',t:pre+'ADL<6 ('+adl+')'});
+      if(iadl<C.IADL_FIT)reasons.push({c:'frail',t:pre+'IADL<8 ('+iadl+')'});
+      if(g34>=1)reasons.push({c:'frail',t:pre+'CIRS-G grade3-4≥1 ('+g34+')'});
+      if(g2>=C.CIRS_G2_FIT_MAX+1)reasons.push({c:'frail',t:pre+'CIRS-G grade2≥'+(C.CIRS_G2_FIT_MAX+1)+' ('+g2+')'});
+    }
+  }
+
+  var cfsDev={flag:false,message:''};
+  if(cfs!==null){
+    if((sga==='fit'||sga==='unfit')&&cfs>=6)cfsDev={flag:true,message:'sGA='+sga+' だが CFS='+cfs+'（≥6）。乖離あり → カンファで重点確認'};
+    else if(sga==='frail'&&cfs<=3)cfsDev={flag:true,message:'sGA=frail だが CFS='+cfs+'（≤3）。乖離あり → 病勢由来/過大評価を確認'};
+  }
+  var drfNote=(input.drf_flag===true||input.drf_flag===1||input.drf_flag==='あり')
+    ? '病勢由来flag: 自動分類は不変。prephase後再評価で最終分類の上書きを検討' : null;
+
+  return{ok:true,derived:derived,sgaClass:sga,reasons:reasons,cfsDeviation:cfsDev,drfNote:drfNote};
+}
+
+/* ===== UI ===== */
+var GLOSS={fit:'治癒目的治療を検討',unfit:'介入で治療可能性 / prephase再評価',frail:'低強度・支持療法・ACPを検討'};
+var state={age:'',cfs:null,drf:0,adl:{},iadl:{},cirs:{}};
+ADL_KEYS.forEach(function(k){state.adl[k]=1;});
+IADL_KEYS.forEach(function(k){state.iadl[k]=1;});
+CIRS_KEYS.forEach(function(k){state.cirs[k]=0;});
+
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+
+/* binary 自立/介助 rows */
+function buildBinary(host,defs,store){
+  defs.forEach(function(d){
+    var key=d[0],label=d[1];
+    var row=el('div','row'); row.dataset.key=key;
+    row.appendChild(el('span','rlabel',label));
+    var seg=el('div','seg bin'); seg.setAttribute('role','group'); seg.setAttribute('aria-label',label);
+    [['1','自立'],['0','介助']].forEach(function(o){
+      var b=el('button',null,o[1]); b.type='button'; b.dataset.v=o[0];
+      b.setAttribute('aria-pressed', String(store[key])===o[0]?'true':'false');
+      b.addEventListener('click',function(){
+        store[key]=Number(o[0]);
+        seg.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed','false');});
+        b.setAttribute('aria-pressed','true');
+        row.classList.toggle('exception', store[key]===0);
+        recalc();
+      });
+      seg.appendChild(b);
+    });
+    row.appendChild(seg); host.appendChild(row);
+  });
+}
+
+/* CIRS-G 0–4 rows */
+function buildCirs(host){
+  CIRS.forEach(function(d){
+    var key=d[0],label=d[1],desc=d[2];
+    var row=el('div','row'); row.dataset.key=key;
+    var rl=el('span','rlabel'); rl.appendChild(document.createTextNode(label));
+    if(desc)rl.appendChild(el('small','sysdesc',desc));
+    row.appendChild(rl);
+    var seg=el('div','seg grade'); seg.setAttribute('role','group'); seg.setAttribute('aria-label',label);
+    for(var g=0;g<=4;g++){(function(g){
+      var b=el('button',null,String(g)); b.type='button'; b.dataset.v=String(g);
+      b.setAttribute('aria-pressed', state.cirs[key]===g?'true':'false');
+      b.addEventListener('click',function(){
+        state.cirs[key]=g;
+        seg.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed','false');});
+        b.setAttribute('aria-pressed','true');
+        row.classList.toggle('exception', g>=1);
+        recalc();
+      });
+      seg.appendChild(b);
+    })(g);}
+    row.appendChild(seg); host.appendChild(row);
+  });
+}
+
+/* CFS 1–9 */
+/* CFS 1–9（日本老年医学会 臨床虚弱尺度 日本語版v2 のラベル＋機能的説明） */
+var CFS_LABELS=[
+ ['非常に健常である','運動習慣があり同年代で最も健康'],
+ ['健常','活動的で明らかな疾患症状なし'],
+ ['健康管理されている','併存症はあるが良好にコントロール'],
+ ['ごく軽度の虚弱','自立だが動作が緩慢、症状で活動制限のことも'],
+ ['軽度の虚弱','高度なIADL（金銭・交通・重い家事）に介助'],
+ ['中等度の虚弱','外出・家事全般に介助、入浴に介助のことも'],
+ ['重度の虚弱','身の回りの世話に全面介助だが安定'],
+ ['非常に重度の虚弱','全面依存、軽い病気でも回復困難'],
+ ['人生の最終段階','余命が限られる（虚弱が顕著でなくても該当）']
+];
+function buildCfs(host){
+  CFS_LABELS.forEach(function(d,i){
+    var n=i+1;
+    var b=el('button','cfs-opt'); b.type='button'; b.dataset.v=String(n);
+    b.setAttribute('aria-pressed','false'); b.setAttribute('aria-label','CFS '+n+' '+d[0]);
+    var num=el('span','num',String(n));
+    var ct=el('span','ct');
+    ct.appendChild(el('span','lab',d[0]));
+    ct.appendChild(el('span','desc',d[1]));
+    b.appendChild(num); b.appendChild(ct);
+    b.addEventListener('click',function(){
+      if(state.cfs===n){state.cfs=null;b.setAttribute('aria-pressed','false');}
+      else{state.cfs=n;host.querySelectorAll('.cfs-opt').forEach(function(x){x.setAttribute('aria-pressed','false');});b.setAttribute('aria-pressed','true');}
+      recalc();
+    });
+    host.appendChild(b);
+  });
+}
+
+function readState(){
+  var inp={cirs:{}};
+  inp.age=state.age===''?NaN:Number(state.age);
+  inp.cfs=state.cfs;
+  inp.drf_flag=state.drf===1;
+  ADL_KEYS.forEach(function(k){inp[k]=state.adl[k];});
+  IADL_KEYS.forEach(function(k){inp[k]=state.iadl[k];});
+  CIRS_KEYS.forEach(function(k){inp.cirs[k]=state.cirs[k];});
+  return inp;
+}
+
+function recalc(){
+  var r=classifySGA(readState());
+  var badge=document.getElementById('badge'), gloss=document.getElementById('gloss');
+  var derived=document.getElementById('derived'), reasons=document.getElementById('reasons'), flags=document.getElementById('flags');
+  var d=r.derived;
+  derived.innerHTML='ADL <b>'+d.adlTotal+'</b>/6 ・ IADL <b>'+d.iadlTotal+'</b>/8 ・ CIRS-G g2 <b>'+d.cirsG2+'</b> / g3 <b>'+d.cirsG3+'</b> / g4 <b>'+d.cirsG4+'</b>';
+  reasons.innerHTML=''; flags.innerHTML='';
+  var flowlink=document.getElementById('flowlink'); flowlink.innerHTML='';
+
+  if(!r.ok){
+    badge.dataset.c='none'; badge.textContent='年齢を入力'; gloss.textContent='';
+    return;
+  }
+  badge.dataset.c=r.sgaClass; badge.textContent=r.sgaClass;
+  gloss.textContent=GLOSS[r.sgaClass];
+  r.reasons.forEach(function(x){var li=el('li',null,x.t); li.dataset.c=x.c; reasons.appendChild(li);});
+  if(r.cfsDeviation.flag){
+    var c=el('div','callout flag'); c.innerHTML='<strong>CFS乖離</strong> '+r.cfsDeviation.message; flags.appendChild(c);
+  }
+  if(r.drfNote){
+    var n=el('div','callout'); n.textContent=r.drfNote; flags.appendChild(n);
+  }
+  var fb=el('button','flow-link-btn','この判定（'+r.sgaClass+'）の治療フローを見る →');
+  fb.type='button';
+  fb.addEventListener('click',function(){showFlowFor(r.sgaClass);});
+  flowlink.appendChild(fb);
+}
+
+function resetAll(){
+  state.age=''; state.cfs=null; state.drf=0;
+  ADL_KEYS.forEach(function(k){state.adl[k]=1;});
+  IADL_KEYS.forEach(function(k){state.iadl[k]=1;});
+  CIRS_KEYS.forEach(function(k){state.cirs[k]=0;});
+  document.getElementById('age').value='';
+  document.querySelectorAll('#cfs button').forEach(function(b){b.setAttribute('aria-pressed','false');});
+  document.querySelectorAll('#drf button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v==='0'?'true':'false');});
+  document.querySelectorAll('#adl .row, #iadl .row').forEach(function(row){
+    row.classList.remove('exception');
+    row.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v==='1'?'true':'false');});
+  });
+  document.querySelectorAll('#cirs .row').forEach(function(row){
+    row.classList.remove('exception');
+    row.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v==='0'?'true':'false');});
+  });
+  recalc();
+}
+
+/* init */
+buildBinary(document.getElementById('adl'),ADL,state.adl);
+buildBinary(document.getElementById('iadl'),IADL,state.iadl);
+buildCirs(document.getElementById('cirs'));
+buildCfs(document.getElementById('cfs'));
+document.getElementById('age').addEventListener('input',function(e){state.age=e.target.value;recalc();});
+document.querySelectorAll('#drf button').forEach(function(b){
+  b.addEventListener('click',function(){
+    state.drf=Number(b.dataset.v);
+    document.querySelectorAll('#drf button').forEach(function(x){x.setAttribute('aria-pressed','false');});
+    b.setAttribute('aria-pressed','true'); recalc();
+  });
+});
+document.getElementById('resetBtn').addEventListener('click',resetAll);
+
+/* 説明文の一括表示/非表示（タッチ確実・グレード凡例は常時表示） */
+(function(){
+  var dt=document.getElementById('descToggle');
+  dt.addEventListener('click',function(){
+    var nowOn = dt.getAttribute('aria-pressed')!=='true';
+    dt.setAttribute('aria-pressed', String(nowOn));
+    document.body.classList.toggle('hide-desc', !nowOn);
+    dt.textContent = nowOn ? '説明文：表示' : '説明文：非表示';
+  });
+})();
+
+/* ===== ビュー切替（評価 ⇄ 治療フロー）＋ 結果連動 ===== */
+function showView(which){
+  document.getElementById('view-assess').hidden = (which!=='assess');
+  document.getElementById('view-flow').hidden = (which!=='flow');
+  document.getElementById('tabAssess').setAttribute('aria-pressed', String(which==='assess'));
+  document.getElementById('tabFlow').setAttribute('aria-pressed', String(which==='flow'));
+  window.scrollTo(0,0);
+}
+function setPathCollapsed(c,collapsed){
+  var p=document.getElementById('path-'+c);
+  if(p){p.classList.toggle('collapsed',collapsed);
+    var ch=p.querySelector('.chev'); if(ch)ch.textContent=collapsed?'▸':'▾';}
+}
+function showFlowFor(cls){
+  showView('flow');
+  ['fit','unfit','frail'].forEach(function(c){
+    setPathCollapsed(c, c!==cls);
+    document.getElementById('path-'+c).classList.toggle('match', c===cls);
+  });
+  var cur=document.getElementById('flow-current');
+  cur.textContent='現在の判定: '+cls.toUpperCase(); cur.dataset.c=cls;
+  var t=document.getElementById('path-'+cls);
+  if(t)setTimeout(function(){t.scrollIntoView({behavior:'smooth',block:'start'});},50);
+}
+function showFlowAll(){
+  showView('flow');
+  ['fit','unfit','frail'].forEach(function(c){
+    setPathCollapsed(c,false);
+    document.getElementById('path-'+c).classList.remove('match');
+  });
+  var cur=document.getElementById('flow-current'); cur.textContent=''; cur.removeAttribute('data-c');
+}
+document.getElementById('tabAssess').addEventListener('click',function(){showView('assess');});
+document.getElementById('tabFlow').addEventListener('click',showFlowAll);
+document.getElementById('toAssess').addEventListener('click',function(){showView('assess');});
+/* フロー内：見出しタップで開閉 */
+document.querySelectorAll('.phead[data-toggle]').forEach(function(h){
+  h.addEventListener('click',function(){
+    var c=h.getAttribute('data-toggle');
+    var p=document.getElementById('path-'+c);
+    setPathCollapsed(c, !p.classList.contains('collapsed'));
+  });
+});
+recalc();
+</script>
+</body>
+</html>
