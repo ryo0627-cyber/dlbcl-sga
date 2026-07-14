@@ -300,7 +300,7 @@ footer .star{color:var(--amber-ink)}
   </div>
 
   <footer>
-    <div>sGA分類は Merli F et al. JCO 2021;39(11):1214-1222（FIL Elderly Project）に準拠。CIRS-G grade2: &lt;5→fit可 / 5–8→unfit / &gt;8→frail、grade3-4が1つでも→frail。年齢は80歳の二分のみ（≥80はfit不可・最良でunfit、年齢のみではfrailにしない）。</div>
+    <div>sGA分類は Merli F et al. JCO 2021;39(11):1214-1222（FIL Elderly Project）Table 1 に完全準拠。年齢80歳で二分：年齢&lt;80はADL≥5・IADL≥6・grade3-4なし・grade2≤8を全て満たせばfit、外れればunfit（&lt;80はfrailにならない）。年齢≥80はfit不可、ADL=6・IADL=8・grade3-4なし・grade2&lt;5でunfit、外れればfrail。</div>
     <div>CFSは分類を変えず乖離検出のみ。病勢由来flagは分類を変えずカンファでの上書き根拠として提示。スコアは治療可否の自動判定ではなく補助線。</div>
     <div>CFSのラベルは日本老年医学会 臨床虚弱尺度（Clinical Frailty Scale 日本語版v2）に準拠。各レベルの説明文は機能面の要約。</div>
     <div>本ツールはデータを保存・送信しません。患者識別情報は入力しないでください。</div>
@@ -308,20 +308,23 @@ footer .star{color:var(--amber-ink)}
 </div>
 
 <script>
-/* ===== sGA core（Merli 2021 JCO / Soverini review / FIL試験基準で確定） ===== */
+/* ===== sGA core（原著 Merli 2021 JCO Table 1 完全準拠） ===== */
 var SGA_CONFIG = {
-  AGE_ELDER:80,         /* ≥80 は fit 不可（最良で unfit）。年齢のみで frail にしない */
-  ADL_FIT:6, ADL_FRAIL_MAX:4,
-  IADL_FIT:8, IADL_FRAIL_MAX:5,
-  CIRS_G2_FIT_MAX:4,    /* grade2 <5 → fit可 */
-  CIRS_G2_UNFIT_MAX:8   /* grade2 5–8 → unfit / >8 → frail。grade3-4 が1つでも → frail */
+  AGE_CUT:80,            /* 年齢 <80 / ≥80 で二分 */
+  ADL_FIT_MIN:5,        /* 年齢<80 fit: ADL≥5 */
+  IADL_FIT_MIN:6,       /* 年齢<80 fit: IADL≥6 */
+  CIRS_G2_FIT_MAX:8,    /* 年齢<80 fit: grade2≤8 */
+  ADL_UNFIT80:6,        /* 年齢≥80 unfit: ADL=6 */
+  IADL_UNFIT80:8,       /* 年齢≥80 unfit: IADL=8 */
+  CIRS_G2_UNFIT80_MAX:4 /* 年齢≥80 unfit: grade2≤4 */
+  /* grade3-4 は fit・unfit(≥80) いずれも 0 が条件 */
 };
-var ADL = [['adl_bath','入浴'],['adl_dress','更衣'],['adl_toilet','トイレ動作'],['adl_transfer','移乗'],['adl_continence','排泄コントロール'],['adl_feeding','食事']];
-var IADL = [['iadl_phone','電話・連絡'],['iadl_shopping','買い物'],['iadl_food','食事準備'],['iadl_housekeep','家事'],['iadl_laundry','洗濯'],['iadl_transport','移動・交通'],['iadl_meds','服薬管理'],['iadl_finance','金銭管理']];
-var CIRS = [['cirs_heart','心臓','虚血性心疾患・心不全・弁膜症・不整脈'],['cirs_vascular','血管','高血圧・末梢動脈疾患・大血管病変'],['cirs_hema','血液・造血','原疾患以外の血球減少・骨髄予備能'],['cirs_resp','呼吸器','COPD・間質性肺疾患・在宅酸素'],['cirs_eent','眼・耳・鼻・咽喉','視力・聴力・嚥下（頭頸部）'],['cirs_ugi','上部消化管','食道・胃・十二指腸'],['cirs_lgi','下部消化管','腸管・下痢・憩室・通過障害'],['cirs_hepato','肝・胆・膵','肝機能・胆道・膵'],['cirs_renal','腎','CKDステージ・eGFR'],['cirs_gu','泌尿生殖器','排尿障害・前立腺・骨盤内'],['cirs_msk','筋骨格・皮膚','骨・関節・皮膚（ADL・転倒）'],['cirs_neuro','神経','脳血管障害・末梢神経障害・パーキンソン'],['cirs_endo','内分泌・代謝・乳腺','糖尿病・甲状腺・電解質'],['cirs_psych','精神・行動','うつ・不安・行動障害・せん妄']];
-var ADL_KEYS = ADL.map(function(x){return x[0];});
-var IADL_KEYS = IADL.map(function(x){return x[0];});
-var CIRS_KEYS = CIRS.map(function(x){return x[0];});
+var ADL=[['adl_bath','入浴'],['adl_dress','更衣'],['adl_toilet','トイレ動作'],['adl_transfer','移乗'],['adl_continence','排泄コントロール'],['adl_feeding','食事']];
+var IADL=[['iadl_phone','電話・連絡'],['iadl_shopping','買い物'],['iadl_food','食事準備'],['iadl_housekeep','家事'],['iadl_laundry','洗濯'],['iadl_transport','移動・交通'],['iadl_meds','服薬管理'],['iadl_finance','金銭管理']];
+var CIRS=[['cirs_heart','心臓'],['cirs_vascular','血管'],['cirs_hema','血液・造血'],['cirs_resp','呼吸器'],['cirs_eent','眼・耳・鼻・咽喉'],['cirs_ugi','上部消化管'],['cirs_lgi','下部消化管'],['cirs_hepato','肝・胆・膵'],['cirs_renal','腎'],['cirs_gu','泌尿生殖器'],['cirs_msk','筋骨格・皮膚'],['cirs_neuro','神経'],['cirs_endo','内分泌・代謝・乳腺'],['cirs_psych','精神・行動']];
+var ADL_KEYS=ADL.map(function(x){return x[0];});
+var IADL_KEYS=IADL.map(function(x){return x[0];});
+var CIRS_KEYS=CIRS.map(function(x){return x[0];});
 
 function _sum01(o,keys){var t=0;for(var i=0;i<keys.length;i++)t+=Number(o[keys[i]])||0;return t;}
 function _cirsCounts(c){var c2=0,c3=0,c4=0,total=0;for(var i=0;i<CIRS_KEYS.length;i++){var v=Number(c[CIRS_KEYS[i]])||0;total+=v;if(v===2)c2++;if(v===3)c3++;if(v===4)c4++;}return{c2:c2,c3:c3,c4:c4,total:total};}
@@ -335,33 +338,30 @@ function classifySGA(input){
   if(!isFinite(age))return{ok:false,derived:derived};
 
   var C=SGA_CONFIG, reasons=[], sga;
-  if(age < C.AGE_ELDER){
-    if(adl<=C.ADL_FRAIL_MAX || iadl<=C.IADL_FRAIL_MAX || g34>=1 || g2>C.CIRS_G2_UNFIT_MAX){
-      sga='frail';
-      if(adl<=C.ADL_FRAIL_MAX)reasons.push({c:'frail',t:'ADL合計≤'+C.ADL_FRAIL_MAX+' ('+adl+')'});
-      if(iadl<=C.IADL_FRAIL_MAX)reasons.push({c:'frail',t:'IADL合計≤'+C.IADL_FRAIL_MAX+' ('+iadl+')'});
-      if(g34>=1)reasons.push({c:'frail',t:'CIRS-G grade3-4≥1 ('+g34+')'});
-      if(g2>C.CIRS_G2_UNFIT_MAX)reasons.push({c:'frail',t:'CIRS-G grade2>'+C.CIRS_G2_UNFIT_MAX+' ('+g2+')'});
-    } else if(adl===5 || iadl===6 || iadl===7 || (g2>=C.CIRS_G2_FIT_MAX+1 && g2<=C.CIRS_G2_UNFIT_MAX)){
-      sga='unfit';
-      if(adl===5)reasons.push({c:'unfit',t:'ADL合計=5'});
-      if(iadl===6||iadl===7)reasons.push({c:'unfit',t:'IADL合計6–7 ('+iadl+')'});
-      if(g2>=C.CIRS_G2_FIT_MAX+1 && g2<=C.CIRS_G2_UNFIT_MAX)reasons.push({c:'unfit',t:'CIRS-G grade2 '+(C.CIRS_G2_FIT_MAX+1)+'–'+C.CIRS_G2_UNFIT_MAX+' ('+g2+')'});
-    } else {
+  if(age < C.AGE_CUT){
+    /* --- 年齢 <80：fit条件を全て満たせばfit、外れればunfit（frailにはならない） --- */
+    if(adl>=C.ADL_FIT_MIN && iadl>=C.IADL_FIT_MIN && g34===0 && g2<=C.CIRS_G2_FIT_MAX){
       sga='fit';
-      reasons.push({c:'fit',t:'年齢<'+C.AGE_ELDER+' / ADL=6 / IADL=8 / grade3-4なし / grade2<'+(C.CIRS_G2_FIT_MAX+1)});
+      reasons.push({c:'fit',t:'年齢<'+C.AGE_CUT+' / ADL≥'+C.ADL_FIT_MIN+' / IADL≥'+C.IADL_FIT_MIN+' / grade3-4なし / grade2≤'+C.CIRS_G2_FIT_MAX});
+    } else {
+      sga='unfit';
+      if(adl<C.ADL_FIT_MIN)reasons.push({c:'unfit',t:'ADL<'+C.ADL_FIT_MIN+' ('+adl+')'});
+      if(iadl<C.IADL_FIT_MIN)reasons.push({c:'unfit',t:'IADL<'+C.IADL_FIT_MIN+' ('+iadl+')'});
+      if(g34>=1)reasons.push({c:'unfit',t:'CIRS-G grade3-4≥1 ('+g34+')'});
+      if(g2>C.CIRS_G2_FIT_MAX)reasons.push({c:'unfit',t:'CIRS-G grade2>'+C.CIRS_G2_FIT_MAX+' ('+g2+')'});
     }
   } else {
-    if(adl===C.ADL_FIT && iadl===C.IADL_FIT && g34===0 && g2<=C.CIRS_G2_FIT_MAX){
+    /* --- 年齢 ≥80：fit不可。unfit条件を全て満たせばunfit、外れればfrail --- */
+    if(adl===C.ADL_UNFIT80 && iadl===C.IADL_UNFIT80 && g34===0 && g2<=C.CIRS_G2_UNFIT80_MAX){
       sga='unfit';
-      reasons.push({c:'unfit',t:'年齢≥'+C.AGE_ELDER+'（ADL/IADL自立・重篤併存なし）'});
+      reasons.push({c:'unfit',t:'年齢≥'+C.AGE_CUT+'（ADL=6・IADL=8・grade3-4なし・grade2<5）'});
     } else {
       sga='frail';
-      var pre='年齢≥'+C.AGE_ELDER+' かつ ';
-      if(adl<C.ADL_FIT)reasons.push({c:'frail',t:pre+'ADL<6 ('+adl+')'});
-      if(iadl<C.IADL_FIT)reasons.push({c:'frail',t:pre+'IADL<8 ('+iadl+')'});
+      var pre='年齢≥'+C.AGE_CUT+' かつ ';
+      if(adl<C.ADL_UNFIT80)reasons.push({c:'frail',t:pre+'ADL<6 ('+adl+')'});
+      if(iadl<C.IADL_UNFIT80)reasons.push({c:'frail',t:pre+'IADL<8 ('+iadl+')'});
       if(g34>=1)reasons.push({c:'frail',t:pre+'CIRS-G grade3-4≥1 ('+g34+')'});
-      if(g2>=C.CIRS_G2_FIT_MAX+1)reasons.push({c:'frail',t:pre+'CIRS-G grade2≥'+(C.CIRS_G2_FIT_MAX+1)+' ('+g2+')'});
+      if(g2>C.CIRS_G2_UNFIT80_MAX)reasons.push({c:'frail',t:pre+'CIRS-G grade2≥'+(C.CIRS_G2_UNFIT80_MAX+1)+' ('+g2+')'});
     }
   }
 
@@ -373,7 +373,7 @@ function classifySGA(input){
   var drfNote=(input.drf_flag===true||input.drf_flag===1||input.drf_flag==='あり')
     ? '病勢由来flag: 自動分類は不変。prephase後再評価で最終分類の上書きを検討' : null;
 
-  return{ok:true,derived:derived,sgaClass:sga,reasons:reasons,cfsDeviation:cfsDev,drfNote:drfNote};
+  return{ok:true,derived:derived,sgaClass:sga,autoClass:sga,reasons:reasons,cfsDeviation:cfsDev,drfNote:drfNote};
 }
 
 /* ===== UI ===== */
